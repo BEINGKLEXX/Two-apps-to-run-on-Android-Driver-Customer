@@ -1,0 +1,190 @@
+
+// Two Android Apps: Driver App and Customer App
+
+// Driver App
+
+// MainActivity.java (Driver App)
+import android.content.Intent;
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        if (isUserLoggedIn()) {
+            navigateToHome();
+        } else {
+            navigateToLogin();
+        }
+    }
+
+    private boolean isUserLoggedIn() {
+        // Check shared preferences or database for login status
+        return getSharedPreferences("DriverApp", MODE_PRIVATE).getBoolean("isLoggedIn", false);
+    }
+
+    private void navigateToHome() {
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void navigateToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+}
+
+// LoginActivity.java
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class LoginActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        EditText phoneNumber = findViewById(R.id.phoneNumber);
+        EditText pin = findViewById(R.id.pin);
+        Button loginButton = findViewById(R.id.loginButton);
+
+        loginButton.setOnClickListener(v -> {
+            if (validateInputs(phoneNumber.getText().toString(), pin.getText().toString())) {
+                loginUser(phoneNumber.getText().toString(), pin.getText().toString());
+            }
+        });
+    }
+
+    private boolean validateInputs(String phoneNumber, String pin) {
+        // Add input validation logic
+        return !phoneNumber.isEmpty() && !pin.isEmpty();
+    }
+
+    private void loginUser(String phoneNumber, String pin) {
+        // Perform API login call and save login state if successful
+        getSharedPreferences("DriverApp", MODE_PRIVATE)
+                .edit()
+                .putBoolean("isLoggedIn", true)
+                .apply();
+        
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+}
+
+// RegistrationActivity.java
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class RegistrationActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_registration);
+
+        EditText firstName = findViewById(R.id.firstName);
+        EditText lastName = findViewById(R.id.lastName);
+        EditText phoneNumber = findViewById(R.id.phoneNumber);
+        EditText pin = findViewById(R.id.pin);
+        Spinner gender = findViewById(R.id.gender);
+        Spinner county = findViewById(R.id.county);
+        Spinner subCounty = findViewById(R.id.subCounty);
+        Button registerButton = findViewById(R.id.registerButton);
+
+        county.setOnItemSelectedListener(new CountySelectedListener(subCounty));
+
+        registerButton.setOnClickListener(v -> {
+            if (validateInputs(firstName.getText().toString(), lastName.getText().toString(), 
+                               phoneNumber.getText().toString(), pin.getText().toString())) {
+                registerDriver(firstName.getText().toString(), lastName.getText().toString(), 
+                              phoneNumber.getText().toString(), pin.getText().toString(), 
+                              gender.getSelectedItem().toString(), 
+                              county.getSelectedItem().toString(), 
+                              subCounty.getSelectedItem().toString());
+            }
+        });
+    }
+
+    private boolean validateInputs(String firstName, String lastName, String phoneNumber, String pin) {
+        // Add input validation logic
+        return !firstName.isEmpty() && !lastName.isEmpty() && !phoneNumber.isEmpty() && !pin.isEmpty();
+    }
+
+    private void registerDriver(String firstName, String lastName, String phoneNumber, String pin, String gender, String county, String subCounty) {
+        // Perform API registration call
+    }
+}
+
+// Add similar logic for the Customer App with modifications for customer-specific features like requesting rides.
+
+// XML layouts, API calls, and additional classes (like adapters and API services) will complement these Java classes.
+
+
+COUNTIES/SUB COUNTIES API CODE
+// Define the counties and sub-counties data
+const counties = [
+    {
+        id: 1,
+        name: "Baringo",
+        subCounties: ["Baringo Central", "Baringo North", "Baringo South", "Eldama Ravine", "Mogotio", "Tiaty"]
+    },
+    {
+        id: 2,
+        name: "Bomet",
+        subCounties: ["Bomet Central", "Bomet East", "Chepalungu", "Konoin", "Sotik"]
+    },
+    {
+        id: 3,
+        name: "Bungoma",
+        subCounties: ["Bumula", "Kabuchai", "Kanduyi", "Kimilili", "Mt. Elgon", "Sirisia", "Tongaren", "Webuye East", "Webuye West"]
+    },
+    // Add remaining counties here
+];
+
+// Function to fetch data from the API
+async function fetchDataForCounty(countyName) {
+    const apiUrl = `https://api.example.com/data?county=${encodeURIComponent(countyName)}`; // Replace with the actual API URL
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(`Data for ${countyName}:`, data);
+        return data;
+    } catch (error) {
+        console.error(`Failed to fetch data for ${countyName}:`, error);
+        return null;
+    }
+}
+
+// Function to fetch data for all counties
+async function fetchAllCountyData() {
+    for (const county of counties) {
+        const data = await fetchDataForCounty(county.name);
+        // Process the data as needed, e.g., store in a database or display on the UI
+    }
+}
+
+// Fetch data for all counties
+fetchAllCountyData();
+
+
+This script includes:
+1.	counties Data Structure: An array of county objects, each containing the county name and its sub-counties.
+2.	fetchDataForCounty Function: Fetches data for a specific county from an API.
+3.	fetchAllCountyData Function: Iterates through all counties to fetch their respective data.
+4.	API URL: Replace "https://api.example.com/data" with your actual API endpoint.
